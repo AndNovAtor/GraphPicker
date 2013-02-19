@@ -13,7 +13,7 @@ type
     ind1:byte; 
     ind2:byte;
   end;
-var k:1..2;nv,{maxn,}nu:word;
+var k:1..2;numvert,{maxn,}numedg:word;
     v:array [1..100] of vertex;
     u:array [1..100] of edge;
     vdragind:word;
@@ -26,7 +26,7 @@ function findv(x,y:integer;r:integer;var pind:word):boolean;
       i:word;
   begin
     found:=false;
-    for i:=1 to nv do begin
+    for i:=1 to numvert do begin
       if isinside(v[i].x,v[i].y,x,y,r) then begin
         found:=true;
         pind:=i;
@@ -65,25 +65,25 @@ procedure MouseDown(x,y,mb: integer);
   begin
     if not findv(x,y,RAD+1,vind) then begin
       if mb=1 then begin
-        Inc(nv);
-        v[nv].x:=x;
-        v[nv].y:=y;
-        drawvert(nv);
+        Inc(numvert);
+        v[numvert].x:=x;
+        v[numvert].y:=y;
+        drawvert(numvert);
       end;
     end
     else begin
       if mb=1 then begin
         vdragind:=vind;
       end;
-      if (mb=2) and (nv<>0) then begin
+      if (mb=2) and (numvert<>0) then begin
         if (k=1) then begin
-          Inc(nu);
-          u[nu].ind1:=vind;
+          Inc(numedg);
+          u[numedg].ind1:=vind;
           k:=2;
         end;
-        if (k=2) and (u[nu].ind1<>vind) then begin
-          u[nu].ind2:=vind;
-          drawedge(nu);
+        if (k=2) and (u[numedg].ind1<>vind) then begin
+          u[numedg].ind2:=vind;
+          drawedge(numedg);
           k:=1;
         end;
       end;
@@ -92,17 +92,21 @@ procedure MouseDown(x,y,mb: integer);
 procedure keyc(key:integer);
   begin
     if key=vk_c then begin
-      nu:=0;
-      nv:=0;
+      numedg:=0;
+      numvert:=0;
       ClearWindow;
     end;
-//    if maxn<nv then maxn:=nv;
+//    if maxn<numvert then maxn:=numvert;
     if key=vk_e then CloseWindow;
-//    if (key=vk_z) and (nv<>0) then begin
+    if (key=VK_z) and (k=2) then begin
+      k:=1;
+      numedg:=numedg-1;
+    end;
+//    if (key=vk_z) and (numvert<>0) then begin
 //      LockDrawing;
 //      ClearWindow;
-//      nv:=nv-1;
-//      for var i:=1 to nv do
+//      numvert:=numvert-1;
+//      for var i:=1 to numvert do
 //        drawvert(i);
 //      UnlockDrawing;
 //    end;
@@ -115,9 +119,9 @@ procedure MouseMove(x,y,mb: integer);
       ClearWindow;
       v[vdragind].x:=x;
       v[vdragind].y:=y;
-      for i:=1 to nv do
+      for i:=1 to numvert do
         drawvert(i);
-      for i:=1 to nu do
+      for i:=1 to numedg do
         drawedge(i);
       UnlockDrawing;
     end;
@@ -131,7 +135,7 @@ begin
   SetFontSize(6);
   SetFontColor(Color.Red);
   SetWindowSize(800,600);
-  k:=1; nv:=0; nu:=0;
+  k:=1; numvert:=0; numedg:=0;
   vdragind:=0; 
   OnMouseDown := MouseDown;
   OnMouseMove := MouseMove;
