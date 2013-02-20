@@ -1,4 +1,4 @@
-uses GraphABC;
+﻿uses GraphABC;
 const RAD=4;
 type 
 //  coor=record
@@ -35,6 +35,14 @@ function findv(x,y:integer;r:integer;var pind:word):boolean;
     end;
     findv:=found;
   end;
+procedure printcoor(x,y:integer);
+  begin
+    SetFontSize(10); //ширина - 8-9,высота - 14
+    SetFontColor(Color.Black);
+    SetBrushColor(Color.White);
+    TextOut(WindowWidth-100,2,inttostr(x)+' '+inttostr(y));
+    SetPenColor(Color.Black);
+  end;
 procedure drawvert(indvert:word);
   var x,y:integer;
   begin
@@ -43,8 +51,10 @@ procedure drawvert(indvert:word);
     SetPenColor(color.Black);
     SetBrushColor(Color.Black);
     Circle(x,y,RAD);
+    SetFontSize(6);
+    SetFontColor(Color.Red);
     SetBrushColor(Color.Transparent);
-    TextOut(x-4,y+rad+2,inttostr(indvert));
+    TextOut(x-4,y+rad+2,inttostr(indvert)); //ширина - 5-6,высота - 8
   end;
 procedure drawedge(indedge:word);
   var edg:edge;
@@ -56,6 +66,17 @@ procedure drawedge(indedge:word);
     SetPenColor(Color.Black);
     line(v1.x,v1.y,v2.x,v2.y);
   end;
+procedure redrawall;
+  var i:word;
+  begin
+    LockDrawing;
+    ClearWindow;
+    for i:=1 to numvert do
+      drawvert(i);
+    for i:=1 to numedg do
+      drawedge(i);
+    UnlockDrawing;
+  end; 
 procedure MouseUp(x,y,mb: integer);
   begin
     vdragind:=0;
@@ -112,18 +133,12 @@ procedure keyc(key:integer);
 //    end;
   end;
 procedure MouseMove(x,y,mb: integer);
-  var i:word;
   begin
+    printcoor(x,y);
     if (mb=1) and (vdragind>0) then begin
-      LockDrawing;
-      ClearWindow;
       v[vdragind].x:=x;
       v[vdragind].y:=y;
-      for i:=1 to numvert do
-        drawvert(i);
-      for i:=1 to numedg do
-        drawedge(i);
-      UnlockDrawing;
+      redrawall;
     end;
   //  if mb=2 then  begin
   //    SetPenColor(color.White);
@@ -132,8 +147,6 @@ procedure MouseMove(x,y,mb: integer);
   //  end;
   end;
 begin
-  SetFontSize(6);
-  SetFontColor(Color.Red);
   SetWindowSize(800,600);
   k:=1; numvert:=0; numedg:=0;
   vdragind:=0; 
