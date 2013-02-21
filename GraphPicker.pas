@@ -1,5 +1,7 @@
 ﻿uses GraphABC;
-const RAD=4;
+const
+  RAD=4;
+  MARGIN=4;
 type 
 //  coor=record
 //    x:integer;
@@ -136,6 +138,15 @@ procedure MouseMove(x,y,mb: integer);
   begin
     printcoor(x,y);
     if (mb=1) and (vdragind>0) then begin
+      {if (x>RAD-2) and (x<WindowWidth-RAD+2) and (y>RAD-2) and (y<WindowHeight-RAD+1) then begin
+        v[vdragind].x:=x;
+        v[vdragind].y:=y;
+        redrawall;
+      end};
+      if (x<MARGIN) then x:=MARGIN;
+      if (x>WindowWidth-MARGIN) then x:=WindowWidth-MARGIN;
+      if (y<MARGIN) then y:=MARGIN;
+      if (y>WindowHeight-MARGIN) then y:=WindowHeight-MARGIN;
       v[vdragind].x:=x;
       v[vdragind].y:=y;
       redrawall;
@@ -152,5 +163,6 @@ begin
   vdragind:=0; 
   OnMouseDown := MouseDown;
   OnMouseMove := MouseMove;
+  OnMouseUp:= MouseUp;
   OnKeyUp:= keyc;
 end.
