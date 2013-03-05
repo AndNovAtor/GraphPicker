@@ -21,6 +21,8 @@ type
 constructor Iterator.Create(initial: ListItems);
   begin
     next := initial;
+    if initial<>nil then prev := initial^.prev
+    else prev:=nil; 
   end;
 
 function Iterator.hasNext : boolean;
@@ -36,12 +38,14 @@ function Iterator.getNext : TValue;
   begin
     Assert(hasNext, 'Iterator has no next item');
     getNext := next^.value;
+    prev := next;
     next := next^.next;
   end;
 function Iterator.getPrev : TValue;
   begin
     Assert(hasPrev, 'Iterator has no prev item');
     getPrev := prev^.value;
+    next := prev;
     prev := prev^.prev;
   end;
 
@@ -54,38 +58,29 @@ type
   public
     constructor Create;
     function List.length:word;
-    procedure List.push(val: TValue);
     function List.isEmpty : boolean;
+    procedure List.push(val: TValue);
     function List.get(ind: integer) : TValue;
     function List.getFromEnd(ind: integer) : TValue;
     function List.getFirst : TValue;
     function List.getLast : TValue;
     function List.getBegin : Iterator;
     function List.getEnd : Iterator;
-    //function List.getIterator(ind: integer) : Iterator;
+    function List.getIterator(ind: integer) : Iterator;
     //procedure List.remove(Iterator)
     //function List.find(v:TValue):Iterator
     //function List.find(cond:function(TValue):boolean):Iterator
     //function List.find(v:TValue, from: Iterator):Iterator
   end;
-function List.getBegin : Iterator;
-  begin
-    getBegin := Iterator.Create(head);
-  end;
-function List.getEnd : Iterator;
-  begin
-    getEnd := Iterator.Create(tail);
-  end;
-function List.length:word;
-  begin
-    length:=leng;
-  end;
-
 constructor List.Create;
   begin
     leng:=0;
     head := nil;
     tail := nil;
+  end;
+function List.length:word;
+  begin
+    length:=leng;
   end;
 function List.isEmpty : boolean;
   begin
@@ -111,23 +106,26 @@ procedure List.push(val: TValue);
       tail:=item;
     end;
   end;
-function List.get(ind: integer) : TValue;
-  var iterator:integer;
-      point:ListItems;
+function List.getBegin : Iterator;
   begin
-    assert( ((ind>0) and (ind<=length)), 'The wrong index of list item. Index "'+inttostr(ind)+'" is outside the boundaries of the array');
-    point:=head;
-    for iterator:=2 to ind do
-      point:=point^.next;
-    get:=point^.value;
+    getBegin := Iterator.Create(head);
+  end;
+function List.getEnd : Iterator;
+  begin
+    getEnd := Iterator.Create(tail);
+  end;
+function List.get(ind: integer) : TValue;
+  begin
+    get:=getIterator(ind).next^.value;
   end;
 function List.getFromEnd(ind: integer) : TValue;
   var iterator:integer;
       point:ListItems;
   begin
+    assert(not isEmpty, 'List is emty');
     assert( ((ind>0) and (ind<=length)), 'The wrong index of list item. Index "'+inttostr(ind)+'" is outside the boundaries of the array');
     point:=tail;
-    for iterator:=2 downto ind do
+    for iterator:=2 to ind do
       point:=point^.next;
     getFromEnd:=point^.value;
   end;
@@ -138,6 +136,18 @@ function List.getFirst : TValue;
 function List.getLast : TValue;
   begin
     getLast:=getEnd.getNext;
+  end;
+function List.getIterator(ind: integer) : Iterator;
+  var iter:Iterator;
+      i:word;
+  begin
+    assert( ((ind>0) and (ind<=length)), 'The wrong index of list item. Index "'+inttostr(ind)+'" is outside the boundaries of the array');
+    iter:=Iterator.Create(head);
+    for i:=2 to ind do begin
+      iter.prev:=iter.next;
+      iter.next:=iter.next^.next;      
+    end;
+    getIterator:=iter; 
   end;
 var
   lst: List;
