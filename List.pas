@@ -9,54 +9,58 @@ type
   
   Iterator = class
   private
-    next,prev: ListItems;
+    next{,prev}: ListItems;
   public
     constructor Create(initial: ListItems);
+    destructor  Destroy;
     function Iterator.hasNext : boolean;
-    function Iterator.hasPrev : boolean;
+    //function Iterator.hasPrev : boolean;
     function Iterator.getNext : TValue;
-    function Iterator.getPrev : TValue;
+    //function Iterator.getPrev : TValue;
   end;
 
 constructor Iterator.Create(initial: ListItems);
   begin
     next := initial;
-    if initial<>nil then prev := initial^.prev
-    else prev:=nil; 
+    {if initial<>nil then prev := initial^.prev
+    else prev:=nil;}
   end;
-
+destructor Iterator.Destroy;
+  begin
+    next:=nil;
+  end;
 function Iterator.hasNext : boolean;
   begin
     hasNext := next <> nil;
   end;
-function Iterator.hasPrev : boolean;
+{function Iterator.hasPrev : boolean;
   begin
     hasPrev := prev <> nil;
-  end;
+  end;}
 
 function Iterator.getNext : TValue;
   begin
     Assert(hasNext, 'Iterator has no next item');
     getNext := next^.value;
-    prev := next;
+    {prev := next;}
     next := next^.next;
   end;
-function Iterator.getPrev : TValue;
+{function Iterator.getPrev : TValue;
   begin
     Assert(hasPrev, 'Iterator has no prev item');
     getPrev := prev^.value;
     next := prev;
     prev := prev^.prev;
-  end;
+  end;}
 
 type  
   List = class
   private
     head, tail: ListItems;
-    leng:word;
-    
+    leng:word;   
   public
     constructor Create;
+    destructor Destroy;
     function List.length:word;
     function List.isEmpty : boolean;
     procedure List.push(val: TValue);
@@ -67,7 +71,7 @@ type
     function List.getBegin : Iterator;
     function List.getEnd : Iterator;
     function List.getIterator(ind: integer) : Iterator;
-    //procedure List.remove(Iterator)
+    procedure List.remove(it:Iterator);
     //function List.find(v:TValue):Iterator
     //function List.find(cond:function(TValue):boolean):Iterator
     //function List.find(v:TValue, from: Iterator):Iterator
@@ -77,6 +81,20 @@ constructor List.Create;
     leng:=0;
     head := nil;
     tail := nil;
+  end;
+destructor List.Destroy;
+  var iter:iterator;
+  begin
+    leng:=0;
+    tail:=nil;
+    while head<>nil do begin
+      iter:=Iterator.create(head);
+      head:=head^.next;
+      iter.next^.next:=nil;
+      iter.next^.prev:=nil;
+      dispose(iter.next);
+      Iter.Destroy;
+    end;
   end;
 function List.length:word;
   begin
@@ -144,16 +162,34 @@ function List.getIterator(ind: integer) : Iterator;
     assert( ((ind>0) and (ind<=length)), 'The wrong index of list item. Index "'+inttostr(ind)+'" is outside the boundaries of the array');
     iter:=Iterator.Create(head);
     for i:=2 to ind do begin
-      iter.prev:=iter.next;
+      {iter.prev:=iter.next;}
       iter.next:=iter.next^.next;      
     end;
     getIterator:=iter; 
+  end;
+procedure List.remove(it:Iterator);
+  begin
+    Inc(leng,-1);
+    if It.next=head then head:=head^.next;
+    if It.next=tail then tail:=tail^.prev;
+    it.next^.prev:=nil;
+    it.next^.next:=nil;
+    dispose(it.next); 
   end;
 var
   lst: List;
   val1, val2, v: TValue;
   it: Iterator;
 begin
+  //Test Destroy
+  lst := List.Create;
+  lst.push('abcd');
+  writeln(lst.getBegin);
+  it:=Iterator.Create;
+  it.next:=lst.head;
+  lst.push('abcd');
+  lst.Destroy;
+  it.Destroy;
   // Test push
   lst := List.Create;
   Assert( lst.isEmpty, 'List not empty before push' );
