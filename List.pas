@@ -1,6 +1,7 @@
 
 type
   TValue = string[50];
+  Funtype = function(v:TValue):boolean;
   ListItems = ^ListItem;
   ListItem = record
     prev, next: ListItems;
@@ -13,9 +14,11 @@ type
   public
     constructor Create(initial: ListItems);
     destructor  Destroy;
-    function Iterator.hasNext : boolean;
+    function hasNext : boolean;
     //function Iterator.hasPrev : boolean;
-    function Iterator.getNext : TValue;
+    procedure moveNext;
+    function getNext:TValue;
+    function takeNext : TValue;
     //function Iterator.getPrev : TValue;
   end;
 
@@ -37,13 +40,20 @@ function Iterator.hasNext : boolean;
   begin
     hasPrev := prev <> nil;
   end;}
-
-function Iterator.getNext : TValue;
+procedure Iterator.moveNext;
+  begin
+    next:=next^.next;
+  end;
+function Iterator.getNext:TValue;
+  begin
+    getNext:=next^.value;
+  end;
+function Iterator.takeNext : TValue;
   begin
     Assert(hasNext, 'Iterator has no next item');
-    getNext := next^.value;
+    takeNext := getNext;
     {prev := next;}
-    next := next^.next;
+    moveNext;
   end;
 {function Iterator.getPrev : TValue;
   begin
@@ -61,19 +71,20 @@ type
   public
     constructor Create;
     destructor Destroy;
-    function List.length:word;
-    function List.isEmpty : boolean;
-    procedure List.push(val: TValue);
-    function List.get(ind: integer) : TValue;
-    function List.getFromEnd(ind: integer) : TValue;
-    function List.getFirst : TValue;
-    function List.getLast : TValue;
-    function List.getBegin : Iterator;
-    function List.getEnd : Iterator;
-    function List.getIterator(ind: integer) : Iterator;
-    procedure List.remove(it:Iterator);
+    function length:word;
+    function isEmpty : boolean;
+    procedure push(val: TValue);
+    function get(ind: integer) : TValue;
+    function getFromEnd(ind: integer) : TValue;
+    function getFirst : TValue;
+    function getLast : TValue;
+    function getBegin : Iterator;
+    function getEnd : Iterator;
+    function getIterator(ind: integer) : Iterator;
+    procedure remove(it:Iterator);
+    procedure print;
     //function List.find(v:TValue):Iterator
-    //function List.find(cond:function(TValue):boolean):Iterator
+    function List.find(cond:Funtype):Iterator;
     //function List.find(v:TValue, from: Iterator):Iterator
   end;
 constructor List.Create;
@@ -85,15 +96,17 @@ constructor List.Create;
 destructor List.Destroy;
   var iter:iterator;
   begin
-    leng:=0;
-    tail:=nil;
-    while head<>nil do begin
-      iter:=Iterator.create(head);
-      head:=head^.next;
-      iter.next^.next:=nil;
-      iter.next^.prev:=nil;
-      dispose(iter.next);
-      Iter.Destroy;
+    if head<>nil then begin
+      leng:=0;
+      tail:=nil;
+      while head<>nil do begin
+        iter:=Iterator.create(head);
+        head:=head^.next;
+        iter.next^.next:=nil;
+        iter.next^.prev:=nil;
+        dispose(iter.next);
+        Iter.Destroy;
+      end;
     end;
   end;
 function List.length:word;
@@ -134,7 +147,7 @@ function List.getEnd : Iterator;
   end;
 function List.get(ind: integer) : TValue;
   begin
-    get:=getIterator(ind).next^.value;
+    get:=getIterator(ind).getNext;
   end;
 function List.getFromEnd(ind: integer) : TValue;
   var iterator:integer;
@@ -149,11 +162,11 @@ function List.getFromEnd(ind: integer) : TValue;
   end;
 function List.getFirst : TValue;
   begin
-    getFirst:=getBegin.getNext;
+    getFirst:=getBegin.takeNext;
   end;
 function List.getLast : TValue;
   begin
-    getLast:=getEnd.getNext;
+    getLast:=getEnd.takeNext;
   end;
 function List.getIterator(ind: integer) : Iterator;
   var iter:Iterator;
@@ -163,18 +176,51 @@ function List.getIterator(ind: integer) : Iterator;
     iter:=Iterator.Create(head);
     for i:=2 to ind do begin
       {iter.prev:=iter.next;}
-      iter.next:=iter.next^.next;      
+      iter.moveNext;      
     end;
     getIterator:=iter; 
   end;
 procedure List.remove(it:Iterator);
+  var point:ListItems;
   begin
+    point:=it.next;
     Inc(leng,-1);
-    if It.next=head then head:=head^.next;
-    if It.next=tail then tail:=tail^.prev;
-    it.next^.prev:=nil;
-    it.next^.next:=nil;
-    dispose(it.next); 
+    
+    if point=head then
+      head:=head^.next
+    else
+      point^.prev^.next:=point^.next;
+    if point=tail then
+      tail:=tail^.prev
+    else
+      point^.next^.prev:=point^.prev;
+    point^.prev:=nil;
+    point^.next:=nil;
+    dispose(point); 
+  end;
+procedure List.print;
+  var it:iterator;
+  begin
+    it:=getBegin;
+    while it.hasNext do
+      write(it.takeNext,' ');
+    writeln;
+  end;
+function List.find(cond:Funtype):Iterator;
+  var it:iterator;
+      isfind:boolean;
+  begin
+    isfind:=false;
+    it:=getBegin;
+    while it.hasNext and not (isfind) do begin
+      if cond(it.getNext) then begin
+        isfind:=true;
+        break;
+      end;
+      it.moveNext;
+    end;
+    if isfind then find:=it
+    else find:=nil;
   end;
 var
   lst: List;
@@ -182,6 +228,7 @@ var
   it: Iterator;
 begin
   //Test Destroy
+  writeln('Test Destroy');
   lst := List.Create;
   lst.push('abcd');
   writeln(lst.getBegin);
@@ -191,6 +238,7 @@ begin
   lst.Destroy;
   it.Destroy;
   // Test push
+  writeln('Test push');
   lst := List.Create;
   Assert( lst.isEmpty, 'List not empty before push' );
   lst.push('abcd');
@@ -199,6 +247,7 @@ begin
   writeln(lst.head^.next^.value);
   
   // Test get
+  writeln('Test get');
   lst := List.Create;
   val1 := '123';
   val2 := 'bac';
@@ -207,10 +256,41 @@ begin
   writeln( lst.length );
   Assert( lst.get(1) = val1, 'First item is wrong' );
   Assert( lst.get(2) = val2, 'Second item is wrong' );
-  
+  //Test hasNext
+  writeln('Test hasNext');
   it := lst.getBegin;
   while it.hasNext do begin
-    v := it.getNext;
+    v := it.takeNext;
     writeln( v );
   end;
+  //Test get-,take-,move Next
+  writeln('Test get-,take-,move Next');
+  lst.Destroy;
+  lst.push('1');
+  lst.push('2');
+  lst.push('3');
+  lst.push('4');
+  lst.push('5');
+  lst.push('6');
+  it:=lst.getIterator(2);
+  writeln(it.getNext);
+  it.moveNext;
+  it.moveNext;
+  writeln(it.getNext);
+  writeln(it.takeNext);
+  writeln(it.getNext);
+  //Test remove
+  writeln('Test remove');
+  lst.Destroy;
+  lst.push('1');
+  lst.push('2');
+  lst.push('3');
+  lst.push('4');
+  lst.push('5');
+  lst.push('6');
+  writeln(lst.getBegin.next^.value);
+  lst.remove(lst.getBegin);
+  lst.remove(lst.getEnd);
+  lst.remove(lst.getIterator(4));
+  lst.print;
 end.
