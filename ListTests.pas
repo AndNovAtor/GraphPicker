@@ -1,12 +1,12 @@
 Uses ListObj;
 var
-  lst: List;
-  val1, val2, v: TValue;
-  it: Iterator;
+  lst: List<string>;
+  val1, val2, v: string;
+  it: Iterator<string>;
 begin
   //Test Destroy
   writeln('Test Destroy');
-  lst := List.Create;
+  lst := new List<string>;
   lst.push('abcd');
   it:=lst.getBegin;
   lst.push('abcd');
@@ -14,7 +14,7 @@ begin
   it.Destroy;
   // Test push
   writeln('Test push');
-  lst := List.Create;
+  lst := new List<string>;
   Assert( lst.isEmpty, 'List not empty before push' );
   lst.push('abcd');
   lst.push('ab');
@@ -22,13 +22,13 @@ begin
   
   // Test get
   writeln('Test get');
-  lst := List.Create;
+  lst := new List<string>;
   val1 := '123';
   val2 := 'bac';
   lst.push(val1);
   lst.push(val2);
   writeln( lst.length );
-  Assert( lst.get(1) = val1, 'First item is wrong' );
+  Assert( lst.get(1) = val1, 'First item is "'+lst.get(1)+'" but "'+val1+'" expected' );
   Assert( lst.get(2) = val2, 'Second item is wrong' );
   //Test hasNext
   writeln('Test hasNext');
@@ -62,7 +62,7 @@ begin
   lst.push('4');
   lst.push('5');
   lst.push('6');
-  writeln(lst.getBegin.next^.value);
+  writeln(lst.get(2));
   lst.remove(lst.getBegin);
   lst.remove(lst.getEnd);
   lst.remove(lst.getIterator(4));
