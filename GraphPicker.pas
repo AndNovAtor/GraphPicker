@@ -1,4 +1,4 @@
-﻿uses GraphABC;
+﻿uses GraphABC,ListUtils;
 const
   RAD=4;
   MARGIN=4;
@@ -10,20 +10,34 @@ type
   vertex=record
     x:integer;
     y:integer;
+    name:string := '';
   end;
   edge=record
-    ind1:byte; 
-    ind2:byte;
+    point1:iterator<vertex>; 
+    point2:iterator<vertex>;
   end;
-var k:1..2;numvert,{maxn,}numedg:word;
-    v:array [1..100] of vertex;
-    u:array [1..100] of edge;
-    vdragind:word;
-function isinside(centx,centy,x,y:integer;r:integer):boolean;
+  NearPredicate = class (Predicate<vertex>)
+    x:integer;
+    y:integer;
+    constructor create(valx,valy:integer);
+    function cond(val:vertex):boolean;
+  end;
+constructor NearPredicate.create(valx,valy:integer);
+  begin
+    x:=valx;
+    y:=valy;
+  end;
+function NearPredicate.cond(val:vertex):boolean;
+  begin
+    cond:= sqrt(SQR(val.x-x)+SQR(val.y-y))<=RAD;
+  end;
+var k:1..2;
+    verdragpoin:iterator<vertex>;
+{function isinside(centx,centy,x,y:integer;r:integer):boolean;
   begin
     isinside:=sqrt(SQR(centx-x)+SQR(centy-y))<=r;
-  end;
-function findv(x,y:integer;r:integer;var pind:word):boolean;
+  end;}
+{function findv(x,y:integer;r:integer;var pind:word):boolean;
   var found:boolean;
       i:word;
   begin
@@ -36,7 +50,7 @@ function findv(x,y:integer;r:integer;var pind:word):boolean;
       end;
     end;
     findv:=found;
-  end;
+  end;}
 procedure printcoor(x,y:integer);
   begin
     SetFontSize(10); //ширина - 8-9,высота - 14
@@ -45,20 +59,20 @@ procedure printcoor(x,y:integer);
     TextOut(WindowWidth-100,2,inttostr(x)+' '+inttostr(y));
     SetPenColor(Color.Black);
   end;
-procedure drawvert(indvert:word);
+procedure drawvert(pointvert:iterator<vertex>);
   var x,y:integer;
   begin
-    x:=v[indvert].x;
-    y:=v[indvert].y;
+    x:=pointvert.getNext.x;
+    y:=pointvert.getNext.y;
     SetPenColor(color.Black);
     SetBrushColor(Color.Black);
     Circle(x,y,RAD);
-    SetFontSize(6);
+    {SetFontSize(6);
     SetFontColor(Color.Red);
     SetBrushColor(Color.Transparent);
-    TextOut(x-4,y+rad+2,inttostr(indvert)); //ширина - 5-6,высота - 8
+    TextOut(x-4,y+rad+2,inttostr(indvert)); //ширина - 5-6,высота - 8}
   end;
-procedure drawedge(indedge:word);
+procedure drawedge(pointed:iterator<edge>);
   var edg:edge;
       v1,v2:vertex;
   begin

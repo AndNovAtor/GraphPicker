@@ -1,4 +1,4 @@
-Unit ListObj;
+Unit ListUtils;
 interface
   type
     //TValue = string[50];
@@ -12,6 +12,9 @@ interface
       value: TValue;  
     end;
     
+    Predicate<TValue> = interface
+      function check(val:TValue):boolean;
+    end;
     Iterator<TValue> = class
       public
         constructor Create(initial: ListItem<TValue>);
@@ -43,7 +46,7 @@ interface
         procedure remove(it:Iterator<TValue>);
         procedure print;
         //function find(v:TValue):Iterator<TValue>
-        ///function find(cond:Funtype):Iterator<TValue>;
+        function find(condition:Predicate<TValue>):Iterator<TValue>;
         //function find(v:TValue, from: Iterator<TValue>):Iterator<TValue>
       private
         head, tail: ListItem<TValue>;
@@ -84,6 +87,7 @@ implementation
   function Iterator<TValue>.takeNext : TValue;
     begin
       Assert(hasNext, 'Iterator has no next item');
+
       takeNext := getNext;
       {prev := next;}
       moveNext;
@@ -95,7 +99,7 @@ implementation
       next := prev;
       prev := prev^.prev;
     end;}
-  
+
   constructor List<TValue>.Create;
     begin
       leng:=0;
@@ -201,6 +205,16 @@ implementation
         point.next.prev:=point.prev;
       point.prev:=nil;
       point.next:=nil; 
+    end;
+  function list<Tvalue>.find(condition:Predicate<TValue>):Iterator<TValue>;
+    var iter:Iterator<Tvalue>;
+    begin
+      assert(not isEmpty, 'List is empty,');
+      iter:=new Iterator<Tvalue>(head);
+      while iter.next<>nil do
+        if condition.check(iter.getNext) then break
+        else iter.moveNext;
+      find:=iter;
     end;
   procedure List<TValue>.print;
     var it:Iterator<TValue>;
