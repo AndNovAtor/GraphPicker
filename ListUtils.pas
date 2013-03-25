@@ -47,6 +47,7 @@ interface
         procedure print;
         //function find(v:TValue):Iterator<TValue>
         function find(condition:Predicate<TValue>):Iterator<TValue>;
+        function find(val:TValue):Iterator<TValue>;
         //function find(v:TValue, from: Iterator<TValue>):Iterator<TValue>
       private
         head, tail: ListItem<TValue>;
@@ -209,10 +210,20 @@ implementation
   function list<Tvalue>.find(condition:Predicate<TValue>):Iterator<TValue>;
     var iter:Iterator<Tvalue>;
     begin
-      assert(not isEmpty, 'List is empty,');
+      assert(not isEmpty, 'List is empty');
       iter:=new Iterator<Tvalue>(head);
       while iter.next<>nil do
         if condition.check(iter.getNext) then break
+        else iter.moveNext;
+      find:=iter;
+    end;
+  function list<Tvalue>.find(val:TValue):Iterator<TValue>;
+    var iter:Iterator<Tvalue>;
+    begin
+      assert(not isEmpty, 'List is empty');
+      iter:=new Iterator<Tvalue>(head);
+      while iter.next<>nil do
+        if val=iter.getNext then break
         else iter.moveNext;
       find:=iter;
     end;

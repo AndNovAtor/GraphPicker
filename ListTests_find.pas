@@ -24,5 +24,8 @@ begin
   con:=new NowPred;
   lst.remove(lst.find(con));
   lst.print;
+  lst.push(7);
+  lst.remove(lst.find(1));
+  lst.print;
 end.
   
