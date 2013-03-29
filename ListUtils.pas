@@ -19,6 +19,7 @@ interface
       public
         constructor Create(initial: ListItem<TValue>);
         destructor  Destroy;
+        procedure unSet;
         function hasNext : boolean;
         //function Iterator<TValue>.hasPrev : boolean;
         procedure moveNext;
@@ -43,6 +44,7 @@ interface
         function getBegin : Iterator<TValue>;
         function getEnd : Iterator<TValue>;
         function getIterator(ind: integer) : Iterator<TValue>;
+        procedure change(iter:Iterator<TValue>;val:TValue);
         procedure remove(it:Iterator<TValue>);
         procedure print;
         //function find(v:TValue):Iterator<TValue>
@@ -54,18 +56,24 @@ interface
         leng:word;   
     end;
 implementation
-    constructor ListItem<TValue>.Create(val: TValue);
+  constructor ListItem<TValue>.Create(val: TValue);
     begin
       next:=nil;
+      prev:=nil;
       value:=val;
     end;
-    constructor Iterator<TValue>.Create(initial: ListItem<Tvalue>);
+    
+  constructor Iterator<TValue>.Create(initial: ListItem<Tvalue>);
     begin
       next := initial;
       {if initial<>nil then prev := initial^.prev
       else prev:=nil;}
     end;
   destructor Iterator<TValue>.Destroy;
+    begin
+      next:=nil;
+    end;
+  procedure Iterator<TValue>.unSet;
     begin
       next:=nil;
     end;
@@ -83,12 +91,12 @@ implementation
     end;
   function Iterator<TValue>.getNext:TValue;
     begin
+      assert(next<>nil,'next=nil!');
       getNext:=next.value;
     end;
   function Iterator<TValue>.takeNext : TValue;
     begin
       Assert(hasNext, 'Iterator has no next item');
-
       takeNext := getNext;
       {prev := next;}
       moveNext;
@@ -191,6 +199,11 @@ implementation
       end;
       getIterator:=iter; 
     end;
+  procedure List<TValue>.change(iter:Iterator<TValue>;val:TValue);
+    begin
+      assert(iter.hasNext, 'Point to item of list is nil!');
+      iter.next.value:=val;
+    end;
   procedure List<TValue>.remove(it:Iterator<TValue>);
     var point:ListItem<TValue>;
     begin
@@ -210,12 +223,14 @@ implementation
   function list<Tvalue>.find(condition:Predicate<TValue>):Iterator<TValue>;
     var iter:Iterator<Tvalue>;
     begin
-      assert(not isEmpty, 'List is empty');
-      iter:=new Iterator<Tvalue>(head);
-      while iter.next<>nil do
-        if condition.check(iter.getNext) then break
-        else iter.moveNext;
-      find:=iter;
+      if isEmpty then find:=new Iterator<Tvalue>(nil)
+      else begin
+        iter:=new Iterator<Tvalue>(head);
+        while iter.next<>nil do
+          if condition.check(iter.getNext) then break
+          else iter.moveNext;
+        find:=iter;
+      end;
     end;
   function list<Tvalue>.find(val:TValue):Iterator<TValue>;
     var iter:Iterator<Tvalue>;
