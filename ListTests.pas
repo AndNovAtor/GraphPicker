@@ -2,7 +2,7 @@ Uses ListUtils;
 procedure AssertEq(expected,actual: string;what:string);
   begin
     assert(expected=actual,'Incorrect '+what+' "'+actual.ToString+'" got, but "'+expected.ToString+'" expected');
-    writeln(String.Format('{0,-17}', what+' = '+expected.ToString),' -  OK');
+    writeln(String.Format('{0,-28}', ' '+what+' = '+expected.ToString),' -  OK');
   end;
 var
   lst: List<string>;
@@ -92,4 +92,27 @@ begin
   lst.push('3');
   lst.change(lst.getIterator(3),'4');
   AssertEq('4',lst.getLast,'last item');
+  
+  //Test iter.nextIter
+  writeln('----Test iter.nextIter');
+  lst:=new List<string>;
+  lst.push('1');
+  lst.push('2');
+  AssertEq('2',lst.getBegin.nextIter.getNext,'item for next iterator');
+  
+  //Test find with from:iterator<TValue>
+  writeln('----Test find with from:iterator<TValue>');
+  lst:=new List<string>;
+  lst.push('1');
+  lst.push('2');
+  lst.push('4');
+  lst.push('5');
+  lst.push('4');
+  lst.push('7');
+  lst.push('5');
+  lst.push('8');
+  AssertEq('4',lst.find('5',lst.getBegin).nextIter.getNext,'item after first "5"');
+  AssertEq('4',lst.find('5',lst.getIterator(3)).nextIter.getNext,'item after first "5"');
+  AssertEq('8',lst.find('5',lst.getIterator(5)).nextIter.getNext,'item after second "5"');
+  //writeln(lst.find('5',lst.getBegin).mooveNext.get);
 end.

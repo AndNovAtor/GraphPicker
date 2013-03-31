@@ -23,6 +23,7 @@ interface
         function hasNext : boolean;
         //function Iterator<TValue>.hasPrev : boolean;
         procedure moveNext;
+        function Iterator<TValue>.nextIter:Iterator<TValue>;
         function getNext:TValue;
         function takeNext : TValue;
         //function Iterator<TValue>.getPrev : TValue;
@@ -46,9 +47,12 @@ interface
         function getIterator(ind: integer) : Iterator<TValue>;
         procedure change(iter:Iterator<TValue>;val:TValue);
         procedure remove(it:Iterator<TValue>);
+        //procedure removeAll(val:TValue);
         procedure print;
         //function find(v:TValue):Iterator<TValue>
+        function find(condition:Predicate<TValue>;from:Iterator<TValue>):Iterator<TValue>;
         function find(condition:Predicate<TValue>):Iterator<TValue>;
+        function find(val:TValue; from:Iterator<TValue>):Iterator<TValue>;
         function find(val:TValue):Iterator<TValue>;
         //function find(v:TValue, from: Iterator<TValue>):Iterator<TValue>
       private
@@ -88,6 +92,10 @@ implementation
   procedure Iterator<TValue>.moveNext;
     begin
       next:=next.next;
+    end;
+  function Iterator<TValue>.nextIter:Iterator<TValue>;
+    begin
+      nextIter:=new Iterator<TValue>(next.next);
     end;
   function Iterator<TValue>.getNext:TValue;
     begin
@@ -220,27 +228,54 @@ implementation
       point.prev:=nil;
       point.next:=nil; 
     end;
-  function list<Tvalue>.find(condition:Predicate<TValue>):Iterator<TValue>;
-    var iter:Iterator<Tvalue>;
+  function List<Tvalue>.find(condition:Predicate<TValue>;from:Iterator<TValue>):Iterator<TValue>;
     begin
-      if isEmpty then find:=new Iterator<Tvalue>(nil)
+      if (isEmpty) or (not from.hasNext) then find:=nil
+      else if (not isEmpty) and (from.hasNext) then begin
+        while from.hasNext do
+          if condition.check(from.getNext) then break
+          else from.moveNext;
+        find:=from;
+      end;
+    end;
+  function list<Tvalue>.find(condition:Predicate<TValue>):Iterator<TValue>;
+    //var iter:Iterator<Tvalue>;
+    begin
+      find:=find(condition,getBegin);
+      {if isEmpty then find:=new Iterator<Tvalue>(nil)
       else begin
         iter:=new Iterator<Tvalue>(head);
         while iter.next<>nil do
           if condition.check(iter.getNext) then break
           else iter.moveNext;
         find:=iter;
-      end;
+      end;}
     end;
-  function list<Tvalue>.find(val:TValue):Iterator<TValue>;
-    var iter:Iterator<Tvalue>;
+  function List<Tvalue>.find(val:TValue; from:Iterator<TValue>):Iterator<TValue>;
     begin
-      assert(not isEmpty, 'List is empty');
+      if (isEmpty) or (not from.hasNext) then find:=nil
+      else if (not isEmpty) and (from.hasNext) then begin
+        while from.next<>nil do
+          if val=from.getNext then break
+          else from.moveNext;
+        find:=from;
+      end;
+      {assert(not isEmpty, 'List is empty');
       iter:=new Iterator<Tvalue>(head);
       while iter.next<>nil do
         if val=iter.getNext then break
         else iter.moveNext;
-      find:=iter;
+      find:=iter;}
+    end;
+  function List<Tvalue>.find(val:TValue):Iterator<TValue>;
+    begin  
+      find:=find(val,getBegin);
+      {assert(not isEmpty, 'List is empty');
+      iter:=new Iterator<Tvalue>(head);
+      while iter.next<>nil do
+        if val=iter.getNext then break
+        else iter.moveNext;
+      find:=iter;}
     end;
   procedure List<TValue>.print;
     var it:Iterator<TValue>;
