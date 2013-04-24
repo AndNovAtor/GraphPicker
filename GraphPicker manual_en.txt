@@ -1,0 +1,9 @@
+GraphPicker for Windows
+
+Attention: For use this program you should have installed Microsoft .net Framework ver. 2 or higher
+
+======
+INDEX:
+======
+1. What's programming language this program was written in.
+2. 
