@@ -1,5 +1,7 @@
 GraphPicker for Windows
 
+OS:Windows
+
 Attention: For use this program you should have installed Microsoft .net Framework ver. 2 or higher
 
 ======
