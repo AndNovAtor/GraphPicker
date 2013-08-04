@@ -333,7 +333,10 @@ procedure MouseMove(x,y,mb: integer);
   end;
 begin
   //ctrl:=false;
-  SetWindowSize(800,600);
+  InitWindow(0,0,min((ScreenWidth-100),800),min(ScreenHeight-100,600),Color.Empty);
+  SetWindowLeft((ScreenWidth-WindowWidth) div 2);
+  SetWindowTop((ScreenHeight-WindowHeight-50) div 2);
+  SetWindowTitle('GraphPicker   by NovAtor');
   vertdrag:=nil;
   edg1vert:=nil;
   vlist:=new List<Vertex>;
