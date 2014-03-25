@@ -1,4 +1,4 @@
-﻿GraphPicker for Windows
+GraphPicker for Windows
 
 ОС: Windows;
 Внимание: Для использования данной программы необходим установленный Microsoft .net Framework версии 2 или выше.
